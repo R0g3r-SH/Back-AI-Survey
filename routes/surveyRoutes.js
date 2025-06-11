@@ -1,27 +1,16 @@
 import express from 'express';
 import {
-  createSurvey,
-  getAllSurveys,
-  getSurveyById,
-  updateSurvey,
-  deleteSurvey,
+
+  createNewSurveyUrl,
+  createNewSurvey
 } from '../controllers/surveyController.js';
 
 const router = express.Router();
 
-// Create a new survey
-router.post('/', createSurvey);
 
-// Get all surveys
-router.get('/', getAllSurveys);
 
-// Get a single survey by ID
-router.get('/:id', getSurveyById);
+router.post('/create-survey-url', createNewSurveyUrl);
+router.post('/create-survey', createNewSurvey);
 
-// Update a survey by ID
-router.put('/:id', updateSurvey);
-
-// Delete a survey by ID
-router.delete('/:id', deleteSurvey);
 
 export default router;

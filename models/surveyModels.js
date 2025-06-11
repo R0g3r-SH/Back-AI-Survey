@@ -9,6 +9,16 @@ const taskDetailSchema = new Schema({
 }, { _id: false });
 
 const surveySchema = new Schema({
+  // Información de empresa (nuevo)
+  companyName: {
+    type: String,
+    default: "",
+  },
+  companySlug: {
+    type: String,
+    default: "",
+  },
+
   // Información personal
   name: {
     type: String,
@@ -35,7 +45,13 @@ const surveySchema = new Schema({
   // Viabilidad de automatización para cada tarea
   taskDetails: {
     type: [taskDetailSchema],
-    default: [],
+    default: [
+      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
+      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
+      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
+      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
+      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" }
+    ],
   },
 
   // Tareas actuales
