@@ -7,10 +7,12 @@ import { generateSurveyUrl } from "../utils/survey.utils.js";
 
 export const createNewSurveyUrl = async (req, res) => {
   try {
-    const { company_name } = req.body;
+    let { company_name } = req.body;
 
     if (!company_name) {
-      return res.status(400).json({ error: "Company name is required" });
+      //agregar un timestamp para evitar duplicados
+      const timestamp = new Date();
+      company_name = `Encuesta General - ${timestamp}`; // Default company name with timestamp
     }
 
     // create a new company
@@ -28,17 +30,18 @@ export const createNewSurveyUrl = async (req, res) => {
   }
 };
 
-
 export const createNewSurvey = async (req, res) => {
   try {
-    const { survey , company_id } = req.body;
+    const { survey, company_id } = req.body;
 
     if (!survey || !company_id) {
-      return res.status(400).json({ error: "Survey data and company ID are required" });
+      return res
+        .status(400)
+        .json({ error: "Survey data and company ID are required" });
     }
     // Create a new survey
     const newSurvey = new Survey({
-      ...survey
+      ...survey,
     });
     await newSurvey.save();
     // Update the company with the new survey
@@ -48,10 +51,10 @@ export const createNewSurvey = async (req, res) => {
     }
     company.surveys.push(newSurvey._id);
     await company.save();
-    res.status(201).json({ message: "Survey created successfully", survey: newSurvey });
-  }
-  catch (error) {
+    res
+      .status(201)
+      .json({ message: "Survey created successfully", survey: newSurvey });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
-
-}
+};
