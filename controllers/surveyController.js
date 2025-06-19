@@ -2,6 +2,7 @@ import Survey from "../models/surveyModels.js";
 import Company from "../models/companyModel.js";
 
 import { generateSurveyUrl } from "../utils/survey.utils.js";
+import { processDashboardData } from "./dashboardController.js";
 
 // Create new survey
 
@@ -54,7 +55,12 @@ export const createNewSurvey = async (req, res) => {
     res
       .status(201)
       .json({ message: "Survey created successfully", survey: newSurvey });
+
+    // Process the dashboard data after creating the survey
+    await processDashboardData(company_id, newSurvey);
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+  
 };
