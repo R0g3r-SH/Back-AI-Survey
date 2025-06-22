@@ -83,3 +83,53 @@ export const calculatePotentialAutomation = async (data) => {
       throw new Error("Failed to calculate automation potential");
     }
   };
+
+//Get the type of task based on the description
+export const getTaskType = async (taskDescription) => {
+  console.log("Getting task type for description:", taskDescription);
+
+  const prompt = ` Classify the following task description into one of the following types: documentation, communication, analysis, creativity, management, reports. Task description: "${taskDescription}"`;
+  
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,  // Slightly higher for slight variability
+      tools: [{
+        type: "function",
+        function: {
+          name: "clasificar_tipo_tarea",
+          description: "Classify the type of task based on its description",
+          parameters: {
+            type: "object",
+            properties: {
+              tipoTarea: {
+                type: "string",
+                description: "The type of task based on the description",
+                enum: ["documentation", "communication", "analysis", "creativity", "management", "reports"]
+              },
+        
+            },
+            required: ["tipoTarea"]
+          }
+        }
+      }],
+      tool_choice: {
+        type: "function",
+        function: { name: "clasificar_tipo_tarea" }
+      }
+    });
+
+    const toolCall = response.choices[0].message.tool_calls[0];
+    const args = JSON.parse(toolCall.function.arguments);
+    const taskType = args.tipoTarea;
+ 
+  
+    
+    return taskType;
+
+  } catch (error) {
+    console.error("Error getting task type:", error);
+    throw new Error("Failed to determine task type");
+  }
+};

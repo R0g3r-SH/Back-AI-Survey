@@ -10,4 +10,5 @@ router.get("/", getAllCompanies);
 router.get("/:id", getCompanyById);
 
 
+
 export default router;

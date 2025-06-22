@@ -18,9 +18,8 @@ const dashboardSchema = new Schema(
       numberUseCases: { type: Number, required: true, default: 0 },
       ROI: { type: Number, required: false },
     },
-
     participationByDepartment: {
-      requestAnimationFrameecursosHumanos: {
+      rh: {
         data: [{ type: Number }], // specify the type of elements in the array
         mean: { type: Number, required: true, default: 0 },
         total: { type: Number, required: true, default: 0 },
@@ -70,8 +69,53 @@ const dashboardSchema = new Schema(
         mean: { type: Number, required: true, default: 0 },
         total: { type: Number, required: true, default: 0 },
       },
-      graphData: { type: Array, default: [] } // Forma más clara para un array vacío
+      graphData: { type: Array, default: [] }, // Forma más clara para un array vacío
     },
+    taskTypeData: {
+      documentation: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      communication: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      analysis: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      creativity: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      management: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      reports: {
+        total: { type: Number, required: true, default: 0 },
+      },
+
+      graphData: { type: Array, default: [] }, // Forma más clara para un array vacío
+    },
+    levelOfPreparation: {
+      starting: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      basic: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      intermediate: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      advanced: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      expert: {
+        total: { type: Number, required: true, default: 0 },
+      },
+      graphData: { type: Array, default: [] }, // Forma más clara para un array vacío
+    },
+    matrixImpactEffort: {
+      graphData: { type: Array, default: [] }, // Forma más clara para un array vacío
+    },
+
+
   },
   { timestamps: true }
 );
