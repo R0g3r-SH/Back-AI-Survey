@@ -243,3 +243,5 @@ export const processDashboardData = async (companyId, surveyData) => {
     throw new Error("Internal server error");
   }
 };
+
+

@@ -9,6 +9,7 @@ import { connectDB } from './config/db.js';
 import surveyRoutes from './routes/surveyRoutes.js'; // Assuming you have a surveyRoutes.js file
 import companyRoutes from './routes/companyRoutes.js'; // Assuming you have a companyRoutes.js file
 import dashboardRoutes from './routes/dashboardRoutes.js'; // Assuming you have a dashboardRoutes.js file
+import analysisRoutes from './routes/analysisRoutes.js'; // Assuming you have an analysisRoutes.js file
 const app = express();
 
 // Enable CORS for all routes
@@ -38,6 +39,7 @@ connectDB();
 app.use('/api/dashboard', dashboardRoutes); // Assuming you have a dashboardRoutes.js file
 app.use('/api/surveys', surveyRoutes); // Assuming you have a surveyRoutes.js file
 app.use('/api/companies', companyRoutes); // Assuming you have a companyRoutes.js file
+app.use('/api/analysis', analysisRoutes); // Assuming you have an analysisRoutes.js file
 // Root route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the API!' });
