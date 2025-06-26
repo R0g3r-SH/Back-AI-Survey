@@ -255,6 +255,7 @@ function getPercentageByDepartment(taskTypeData, type) {
 }
 
 export const processLevelOfPreparation = async (dashboardID, level) => {
+  
   console.log("Processing Level of Preparation for Dashboard ID:", dashboardID);
 
   const dashboard = await Dashboard.findById(dashboardID);

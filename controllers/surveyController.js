@@ -5,7 +5,6 @@ import { generateSurveyUrl } from "../utils/survey.utils.js";
 import { processDashboardData } from "./dashboardController.js";
 
 // Create new survey
-
 export const createNewSurveyUrl = async (req, res) => {
   try {
     let { company_name } = req.body;

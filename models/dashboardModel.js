@@ -114,8 +114,12 @@ const dashboardSchema = new Schema(
     matrixImpactEffort: {
       graphData: { type: Array, default: [] }, // Forma más clara para un array vacío
     },
-
-
+    analysisAndClustering: {
+      report: {
+        main_recommendation: { type: String, required: false, default: "" },
+        expected_impact: { type: String, required: false, default: "" },
+      },
+    },
   },
   { timestamps: true }
 );
