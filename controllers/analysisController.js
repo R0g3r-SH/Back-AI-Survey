@@ -2,7 +2,7 @@ import Company from "../models/companyModel.js";
 import Survey from "../models/surveyModels.js";
 import Dashboard from "../models/dashboardModel.js";
 
-import { genrateAIReport } from "../utils/ai.utils.js";
+import { genrateAIReport,generateAIRoadMap } from "../utils/ai.utils.js";
 
 export const analysisAndClusteringByCompanyID = async (req, res) => {
   const { companyId } = req.params;
@@ -301,5 +301,50 @@ export const gerateReport = async (req, res) => {
     console.error("Error generating AI report:", error);
     return res.status(500).json({ error: "Internal server error" });
   } 
+
+}
+
+
+export const generateRoadmap = async (req, res) => {
+  const { companyId } = req.params;
+
+  try {
+    // Find the company by ID
+    const company = await Company.findOne({ _id: companyId });      
+
+    if (!company) {
+      return res.status(404).json({ error: "Company not found" });
+    } 
+
+    // Find the dashboard data for the company
+    const dashboard = await Dashboard.findOne({ companyId: company._id });
+    if (!dashboard) {
+      return res.status(404).json({ error: "Dashboard data not found" });
+    }
+
+
+    const Data = {
+      companyName: company.name,
+      section1: dashboard.section1 || {},
+      participationByDepartment: dashboard.participationByDepartment || {},
+      levelOfPreparation: dashboard.levelOfPreparation || {},
+      taskTypeData: dashboard.taskTypeData || {},
+  }
+
+    const roadmap = await generateAIRoadMap(Data);
+
+    // Update the dashboard with the AI roadmap
+    dashboard.analysisAndClustering.roadmap = roadmap;
+    await dashboard.save();
+
+    return res.status(200).json({
+      success: true,
+      roadmap: roadmap,
+    });
+
+  } catch (error) {
+    console.error("Error generating roadmap:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 
 }

@@ -237,6 +237,8 @@ export const processTipoTarea = async (dashboardID, tasks) => {
     // Saltar si no tiene total válido
     if (typeof data.total !== 'number') continue;
 
+    if (data.total === 0) continue; // No agregar si el total es 0
+
     dashboard.taskTypeData.graphData.push({
       name: tasksMap[key] || key,
       value: getPercentageByDepartment(dashboard.taskTypeData, key),

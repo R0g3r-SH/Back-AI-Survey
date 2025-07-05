@@ -120,6 +120,16 @@ const dashboardSchema = new Schema(
         expected_impact: { type: String, required: false, default: "" },
       },
     },
+    recomendations: {
+      roadmap: {
+        type: mongoose.Schema.Types.Mixed, // Accepts any structure (object, array, primitive)
+        default: {}, // Optional: starts as an empty object
+      },
+      training: {
+        type: mongoose.Schema.Types.Mixed, // Accepts any structure (object, array, primitive)
+        default: {}, // Optional: starts as an empty object
+      },
+    },
   },
   { timestamps: true }
 );

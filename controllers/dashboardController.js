@@ -4,6 +4,7 @@ import Dashboard from "../models/dashboardModel.js";
 import {
   generateAIResponse,
   calculatePotentialAutomation,
+  generateAIRoadMap
 } from "../utils/ai.utils.js";
 
 import {
@@ -243,5 +244,7 @@ export const processDashboardData = async (companyId, surveyData) => {
     throw new Error("Internal server error");
   }
 };
+
+
 
 
