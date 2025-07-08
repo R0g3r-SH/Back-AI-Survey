@@ -1,7 +1,7 @@
 
 import Company from "../models/companyModel.js";
 import Dashboard from "../models/dashboardModel.js";
-import {generateAIRoadMap,generateAITraining} from "../utils/ai.utils.js";
+import {generateAIRoadMap,generateAITraining ,generateAITechStack} from "../utils/ai.utils.js";
 
 export const getRecomendationsBycompanyId = async (req, res) => {
     const { companyId } = req.params;
@@ -127,3 +127,46 @@ export const generatTaining = async (req, res) => {
   }
 
 }
+
+
+export const generateTechStack = async (req, res) => {
+  const { companyId } = req.params;
+
+  try {
+    // Find the company by ID
+    const company = await Company.findOne({ _id: companyId });
+    if (!company) {
+      return res.status(404).json({ error: "Company not found" });
+    }   
+
+    // Find the dashboard data for the company
+    const dashboard = await Dashboard.findOne({ companyId: company._id });
+    if (!dashboard) {
+      return res.status(404).json({ error: "Dashboard data not found" });
+    } 
+
+    const training = dashboard.recomendations.training || {};
+    
+    if (!training || Object.keys(training).length === 0) {
+      return res.status(404).json({ error: "Training data not found" });
+    }
+
+    // Generate AI tech stack based on the training
+    const techStack = await generateAITechStack(training);
+    // Update the dashboard with the AI tech stack
+    dashboard.recomendations.techStack = techStack;
+    await dashboard.save(); 
+
+    return res.status(200).json({
+      success: true,
+      techStack: techStack,
+    });
+
+  }
+  catch (error) {
+    console.error("Error generating tech stack:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+

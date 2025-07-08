@@ -304,7 +304,6 @@ export const gerateReport = async (req, res) => {
 
 }
 
-
 export const generateRoadmap = async (req, res) => {
   const { companyId } = req.params;
 

@@ -129,6 +129,10 @@ const dashboardSchema = new Schema(
         type: mongoose.Schema.Types.Mixed, // Accepts any structure (object, array, primitive)
         default: {}, // Optional: starts as an empty object
       },
+      techStack: {
+        type: mongoose.Schema.Types.Mixed, // Accepts any structure (object, array, primitive)
+        default: {}, // Optional: starts as an empty object
+      },
     },
   },
   { timestamps: true }

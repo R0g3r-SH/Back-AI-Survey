@@ -212,7 +212,6 @@ export const genrateAIReport = async (data) => {
   }
 };
 
-
 export const generateAIRoadMap = async (data) => {
 
   console.log("Generando hoja de ruta de IA");
@@ -331,7 +330,6 @@ export const generateAIRoadMap = async (data) => {
   }
 };
 
-
 export const generateAITraining = async (data) => {
   console.log("Generating AI training plan");
   
@@ -433,3 +431,120 @@ export const generateAITraining = async (data) => {
     throw new Error("Failed to generate AI training plan");
   }
 };
+
+export const generateAITechStack = async (data) => {
+
+    console.log("Generating AI tech stack plan");
+    
+    const systemMessage = {
+      role: "system",
+      content: `You are an expert in business process analysis and AI automation with Google and OpenAI technologies. 
+      Generate comprehensive technology stacks in JSON format based on the provided roadmap data, following the exact specified format.
+      Always respond in Latin American Spanish (Mexico).`
+    };
+  
+    const userPrompt = {
+      role: "user",
+      content: `Analyze the following requirements and create a detailed technology stack using Google and OpenAI technologies.
+      Respond with a JSON object containing the technology stack exactly as specified in the function schema.
+      
+      Requirements Data: ${JSON.stringify(data, null, 2)}`
+    };
+  
+    try {
+      const response = await openai.chat.completions.create({
+        model: "gpt-4-turbo",
+        messages: [systemMessage, userPrompt],
+        temperature: 0.3,
+        response_format: { type: "json_object" },
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "generate_tech_stack",
+              description: "Generates a detailed technology stack for AI solutions using Google and OpenAI tools",
+              parameters: {
+                type: "object",
+                properties: {
+                  technologies: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        category: {
+                          type: "string",
+                          description: "Category of technology tools"
+                        },
+                        tools: {
+                          type: "array",
+                          items: {
+                            type: "object",
+                            properties: {
+                              name: {
+                                type: "string",
+                                description: "Name of the tool"
+                              },
+                              priority: {
+                                type: "string",
+                                enum: ["Crítico", "Alto", "Medio", "Bajo"],
+                                description: "Implementation priority"
+                              },
+                              timeline: {
+                                type: "string",
+                                description: "Implementation timeline (e.g. 'Mes 1')"
+                              },
+                              cost: {
+                                type: "string",
+                                description: "Estimated monthly cost"
+                              },
+                              users: {
+                                type: "number",
+                                description: "Estimated number of users"
+                              },
+                              implementation: {
+                                type: "string",
+                                description: "Implementation method"
+                              },
+                              benefits: {
+                                type: "array",
+                                items: {
+                                  type: "string"
+                                },
+                                description: "List of benefits"
+                              }
+                            },
+                            required: ["name", "priority", "timeline", "cost", "users", "implementation", "benefits"]
+                          }
+                        }
+                      },
+                      required: ["category", "tools"]
+                    }
+                  }
+                },
+                required: ["technologies"]
+              }
+            }
+          }
+        ],
+        tool_choice: {
+          type: "function",
+          function: { name: "generate_tech_stack" }
+        }
+      });
+  
+      const toolCall = response.choices[0].message.tool_calls[0];
+      if (toolCall.function.name === "generate_tech_stack") {
+        const result = JSON.parse(toolCall.function.arguments);
+        // Validate the structure before returning
+        if (result.technologies && Array.isArray(result.technologies)) {
+          return result.technologies;
+        }
+      }
+      
+      throw new Error("Failed to generate valid technology stack");
+  
+    } catch (error) {
+      console.error("Error generating tech stack:", error);
+      throw new Error("Failed to generate technology stack");
+    }
+  };
