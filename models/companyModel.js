@@ -14,6 +14,14 @@ const companySchema = new Schema({
     survey_url: {
         type: String,
         required: false,
+    },
+    invitationDate: {
+        type: Date,
+        required: false, // Optional for now, can be set later
+    },
+    contact_email: {
+        type: String,
+        required: false, // Optional for now, can be set later
     }
 }, {
     timestamps: true, // Automatically adds createdAt and updatedAt

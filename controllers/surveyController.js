@@ -7,7 +7,7 @@ import { processDashboardData } from "./dashboardController.js";
 // Create new survey
 export const createNewSurveyUrl = async (req, res) => {
   try {
-    let { company_name } = req.body;
+    let { company_name ,invitationDate ,contact_email} = req.body;
 
     if (!company_name) {
       //agregar un timestamp para evitar duplicados
@@ -17,9 +17,18 @@ export const createNewSurveyUrl = async (req, res) => {
 
     // create a new company
     const newCompany = new Company({ name: company_name });
+
+    if (invitationDate) {
+      newCompany.invitationDate = new Date(invitationDate);
+    }
+    if (contact_email) {
+      newCompany.contact_email = contact_email;
+    }
+
     await newCompany.save();
     // Generate survey URL
     const surveyUrl = generateSurveyUrl(newCompany._id);
+
     // Update the company with the survey URL
     newCompany.survey_url = surveyUrl;
     await newCompany.save();
