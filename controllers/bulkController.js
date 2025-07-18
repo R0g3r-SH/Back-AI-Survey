@@ -4,6 +4,7 @@ import path from "path";
 import nodemailer from "nodemailer";
 import { promisify } from "util";
 import Company from "../models/companyModel.js";
+import { Readable } from "stream";
 
 const readFile = promisify(fs.readFile);
 const unlink = promisify(fs.unlink);
@@ -28,69 +29,55 @@ export const bulkUpload = async (req, res) => {
       `File received: ${req.file.originalname}, Size: ${req.file.size} bytes`
     );
 
-    if (req.file.size > 5 * 1024 * 1024) {
-      await unlink(req.file.path);
-      return res.status(400).json({ error: "File size exceeds 5MB limit" });
-    }
-
     const companyId = req.body.companyId;
     if (!companyId) {
-      await unlink(req.file.path);
       return res.status(400).json({ error: "Company ID is required" });
     }
 
     // Get company details from database
     const company = await Company.findById(companyId);
     if (!company) {
-      await unlink(req.file.path);
       return res.status(404).json({ error: "Company not found" });
     }
 
     // Immediately respond that processing has started
     res.status(202).json({
       message: "CSV processing started",
-      processingId: req.file.filename,
+      processingId: req.file.originalname,
     });
 
-    // Process CSV in background
-    processCSV(req.file.path, company)
+    // Process CSV from memory buffer
+    processCSV(req.file.buffer, company)
       .then(() => console.log("Processing completed successfully"))
-      .catch(async (err) => {
+      .catch((err) => {
         console.error("Processing error:", err);
-        await unlink(req.file.path).catch((e) =>
-          console.error("Error deleting file:", e)
-        );
       });
   } catch (error) {
     console.error("Upload error:", error);
-    if (req.file) {
-      await unlink(req.file.path).catch((e) =>
-        console.error("Error deleting file:", e)
-      );
-    }
-    res
-      .status(500)
-      .json({ error: "Internal server error", details: error.message });
+    res.status(500).json({ 
+      error: "Internal server error", 
+      details: error.message 
+    });
   }
 };
 
-async function processCSV(filePath, company) {
+async function processCSV(buffer, company) {
   return new Promise((resolve, reject) => {
     const results = [];
     const batchSize = 50;
     let currentBatch = [];
 
-    console.log(`Starting CSV processing for file: ${filePath}`);
+    console.log("Starting CSV processing from memory buffer");
 
-    if (!fs.existsSync(filePath)) {
-      return reject(new Error(`File not found at path: ${filePath}`));
-    }
+    // Convert buffer to readable stream
+    const readableStream = new Readable();
+    readableStream.push(buffer);
+    readableStream.push(null); // Signal end of stream
 
-    fs.createReadStream(filePath)
+    readableStream
       .pipe(csvParser())
       .on("data", (data) => {
         try {
-          // Normalize keys to lowercase for case-insensitive matching
           const normalizedData = {};
           Object.keys(data).forEach((key) => {
             normalizedData[key.toLowerCase()] = data[key];
@@ -115,15 +102,12 @@ async function processCSV(filePath, company) {
       })
       .on("end", async () => {
         try {
-          // Process remaining emails in the last batch
           if (currentBatch.length > 0) {
             await sendBatchEmails(currentBatch, company);
           }
 
           console.log(`Successfully processed ${results.length} records`);
-          await unlink(filePath);
-
-          // Notify responsible user if contact_email exists
+          
           if (company.contact_email) {
             await sendCompletionNotification(company, results.length);
           }
@@ -133,13 +117,8 @@ async function processCSV(filePath, company) {
           reject(endError);
         }
       })
-      .on("error", async (error) => {
+      .on("error", (error) => {
         console.error("CSV processing stream error:", error);
-        try {
-          await unlink(filePath);
-        } catch (unlinkError) {
-          console.error("Error deleting file:", unlinkError);
-        }
         reject(error);
       });
   });
@@ -205,7 +184,6 @@ async function sendBatchEmails(batch, company) {
 }
 
 async function sendEmail(contact, company) {
-
   const formatDate = (date) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(date).toLocaleDateString("es-ES", options);
@@ -266,7 +244,7 @@ async function sendEmail(contact, company) {
         </div>
       </div>
     `,
-};
+  };
 
   try {
     const info = await transporter.sendMail(mailOptions);
