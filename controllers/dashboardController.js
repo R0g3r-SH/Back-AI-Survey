@@ -4,7 +4,7 @@ import Dashboard from "../models/dashboardModel.js";
 import {
   generateAIResponse,
   calculatePotentialAutomation,
-  generateAIRoadMap
+  generateAIRoadMap,
 } from "../utils/ai.utils.js";
 
 import {
@@ -13,6 +13,12 @@ import {
   processTipoTarea,
   processLevelOfPreparation,
   processTasksEfortvsImpact,
+  processDepartmentAICulture,
+  processDepartmentAIKnowledge,
+  processaiEthichsandGovernanceByDepartment,
+  clusteringByTasks,
+  processaiMaturityByDepartment,
+  calcualtetotalAIMaturitySection,
 } from "../utils/dashboard.utils.js";
 
 export const getDashboardData = async (req, res) => {
@@ -47,13 +53,15 @@ export const getComparativeDashboardData = async (req, res) => {
 
     // Validar que al menos una empresa esté presente
     if (!companyId && !companyId2) {
-      return res.status(400).json({ error: "At least one company ID is required" });
+      return res
+        .status(400)
+        .json({ error: "At least one company ID is required" });
     }
 
     // Buscar compañías según los IDs proporcionados
     const [company, company2] = await Promise.all([
       companyId ? Company.findById(companyId) : null,
-      companyId2 ? Company.findById(companyId2) : null
+      companyId2 ? Company.findById(companyId2) : null,
     ]);
 
     // Verificar que las compañías existan si se proporcionaron sus IDs
@@ -64,7 +72,7 @@ export const getComparativeDashboardData = async (req, res) => {
     // Buscar dashboards
     const [dashboard, dashboard2] = await Promise.all([
       company ? Dashboard.findOne({ companyId: company._id }) : null,
-      company2 ? Dashboard.findOne({ companyId: company2._id }) : null
+      company2 ? Dashboard.findOne({ companyId: company2._id }) : null,
     ]);
 
     // Verificar que existan dashboards para las compañías proporcionadas
@@ -75,30 +83,30 @@ export const getComparativeDashboardData = async (req, res) => {
     // Función para preparar datos de una sola empresa
     const prepareSingleCompanyData = (dashboardData, isEmpresa1) => {
       if (!dashboardData) return [];
-      
-      const key = isEmpresa1 ? 'empresa1' : 'empresa2';
-      return dashboardData.participationByDepartment.graphData.map(area => ({
+
+      const key = isEmpresa1 ? "empresa1" : "empresa2";
+      return dashboardData.participationByDepartment.graphData.map((area) => ({
         area: area.name,
         [key]: isEmpresa1 ? area.responses : area.responses,
-        [isEmpresa1 ? 'empresa2' : 'empresa1']: 0 // La otra empresa en 0
+        [isEmpresa1 ? "empresa2" : "empresa1"]: 0, // La otra empresa en 0
       }));
     };
 
     // Función para combinar datos de ambas empresas
     const combineData = (data1, data2) => {
       const allAreas = new Set([
-        ...data1.map(item => item.area),
-        ...data2.map(item => item.area)
+        ...data1.map((item) => item.area),
+        ...data2.map((item) => item.area),
       ]);
 
-      return Array.from(allAreas).map(area => {
-        const item1 = data1.find(item => item.area === area);
-        const item2 = data2.find(item => item.area === area);
+      return Array.from(allAreas).map((area) => {
+        const item1 = data1.find((item) => item.area === area);
+        const item2 = data2.find((item) => item.area === area);
 
         return {
           area,
           empresa1: item1 ? item1.empresa1 : 0,
-          empresa2: item2 ? item2.empresa2 : 0
+          empresa2: item2 ? item2.empresa2 : 0,
         };
       });
     };
@@ -108,72 +116,80 @@ export const getComparativeDashboardData = async (req, res) => {
 
     if (companyId && companyId2) {
       // Caso 1: Ambas empresas proporcionadas
-      const areasData1 = dashboard.participationByDepartment.graphData.map(area => ({
-        area: area.name,
-        empresa1: area.responses
-      }));
+      const areasData1 = dashboard.participationByDepartment.graphData.map(
+        (area) => ({
+          area: area.name,
+          empresa1: area.responses,
+        })
+      );
 
-      const areasData2 = dashboard2.participationByDepartment.graphData.map(area => ({
-        area: area.name,
-        empresa2: area.responses
-      }));
+      const areasData2 = dashboard2.participationByDepartment.graphData.map(
+        (area) => ({
+          area: area.name,
+          empresa2: area.responses,
+        })
+      );
 
       combinedAreas = combineData(areasData1, areasData2);
 
       // Procesamiento similar para automation y opportunity...
       combinedAutomation = combineData(
-        dashboard.participationByDepartment.graphData.map(area => ({
+        dashboard.participationByDepartment.graphData.map((area) => ({
           area: area.name,
-          empresa1: area.automation
+          empresa1: area.automation,
         })),
-        dashboard2.participationByDepartment.graphData.map(area => ({
+        dashboard2.participationByDepartment.graphData.map((area) => ({
           area: area.name,
-          empresa2: area.automation
+          empresa2: area.automation,
         }))
       );
 
       combinedOpportunity = combineData(
-        dashboard.taskTypeData.graphData.map(area => ({
+        dashboard.taskTypeData.graphData.map((area) => ({
           area: area.name,
-          empresa1: area.value
+          empresa1: area.value,
         })),
-        dashboard2.taskTypeData.graphData.map(area => ({
+        dashboard2.taskTypeData.graphData.map((area) => ({
           area: area.name,
-          empresa2: area.value
+          empresa2: area.value,
         }))
       );
     } else if (companyId) {
       // Caso 2: Solo empresa1
       combinedAreas = prepareSingleCompanyData(dashboard, true);
-      combinedAutomation = dashboard.participationByDepartment.graphData.map(area => ({
-        area: area.name,
-        empresa1: area.automation,
-        empresa2: 0
-      }));
-      combinedOpportunity = dashboard.taskTypeData.graphData.map(area => ({
+      combinedAutomation = dashboard.participationByDepartment.graphData.map(
+        (area) => ({
+          area: area.name,
+          empresa1: area.automation,
+          empresa2: 0,
+        })
+      );
+      combinedOpportunity = dashboard.taskTypeData.graphData.map((area) => ({
         area: area.name,
         empresa1: area.value,
-        empresa2: 0
+        empresa2: 0,
       }));
     } else {
       // Caso 3: Solo empresa2
       combinedAreas = prepareSingleCompanyData(dashboard2, false);
-      combinedAutomation = dashboard2.participationByDepartment.graphData.map(area => ({
+      combinedAutomation = dashboard2.participationByDepartment.graphData.map(
+        (area) => ({
+          area: area.name,
+          empresa1: 0,
+          empresa2: area.automation,
+        })
+      );
+      combinedOpportunity = dashboard2.taskTypeData.graphData.map((area) => ({
         area: area.name,
         empresa1: 0,
-        empresa2: area.automation
-      }));
-      combinedOpportunity = dashboard2.taskTypeData.graphData.map(area => ({
-        area: area.name,
-        empresa1: 0,
-        empresa2: area.value
+        empresa2: area.value,
       }));
     }
 
     const output = {
       areas: combinedAreas,
       tipeOportunity: combinedOpportunity,
-      potentialAutomation: combinedAutomation
+      potentialAutomation: combinedAutomation,
     };
 
     return res.status(200).json(output);
@@ -232,19 +248,96 @@ export const processDashboardData = async (companyId, surveyData) => {
       surveyData.department,
       automationPotential
     );
+    await processDepartmentAICulture(
+      dashboard,
+      surveyData.department,
+      parseFloat(((surveyData.aiCuriosity +
+        surveyData.aiResistance +
+        surveyData.aiCaution) /
+        3).toFixed(2))
+    );
+
+    await processDepartmentAIKnowledge(
+      dashboard._id,
+      surveyData.department,
+      parseFloat(((surveyData.aiBasicKnowledge + surveyData.aiKnowledgePromptDesign + surveyData.aiKnowledgeIntegration + surveyData.aiKnowledgeRiskAssessment + surveyData.aiKnowledgeUsageFrequency) / 5).toFixed(2))
+    );
+    await processaiEthichsandGovernanceByDepartment(
+      dashboard._id,
+      surveyData.department,
+      parseFloat(((surveyData.aiPolicy + surveyData.aiDataGovernance + surveyData.aiSecurityPrivacy) / 3).toFixed(2))
+    );
+
+    // Process AI Maturity by Department
+    await processaiMaturityByDepartment(
+      dashboard._id,
+      surveyData.department,
+      parseFloat(((
+        surveyData.aiCuriosity +
+        surveyData.aiResistance +
+        surveyData.aiBasicKnowledge +
+        surveyData.aiKnowledgePromptDesign +
+        surveyData.aiKnowledgeIntegration +
+        surveyData.aiKnowledgeRiskAssessment +
+        surveyData.aiKnowledgeUsageFrequency +
+        surveyData.aiPolicy +
+        surveyData.aiDataGovernance +
+        surveyData.aiCaution +
+        surveyData.aiSecurityPrivacy
+      ) / 11).toFixed(2))
+    );
+    // Calculate total AI maturity section
+    await calcualtetotalAIMaturitySection(
+      dashboard._id,
+      {
+        aiBasicKnowledge: surveyData.aiBasicKnowledge,
+        aiKnowledgePromptDesign: surveyData.aiKnowledgePromptDesign,
+        aiKnowledgeIntegration: surveyData.aiKnowledgeIntegration,
+        aiKnowledgeRiskAssessment: surveyData.aiKnowledgeRiskAssessment,
+        aiKnowledgeUsageFrequency: surveyData.aiKnowledgeUsageFrequency,
+      },
+      {
+        aiPolicy: surveyData.aiPolicy,
+        aiDataGovernance: surveyData.aiDataGovernance,
+        aiSecurityPrivacy: surveyData.aiSecurityPrivacy,
+      },
+      {
+        aiCuriosity: surveyData.aiCuriosity,
+        aiResistance: surveyData.aiResistance,
+        aiCaution: surveyData.aiCaution,
+      }
+    );
+
     await processTipoTarea(dashboard._id, surveyData.mainTasks);
-    await processLevelOfPreparation(dashboard._id, surveyData.aiKnowledge);
+    await processLevelOfPreparation(dashboard._id, surveyData.aiBasicKnowledge);
     await processTasksEfortvsImpact(
       dashboard._id,
       surveyData.taskDetails,
       surveyData.mainTasks
     );
+
+    // Clustering tasks
+    await clusteringByTasks(
+      dashboard._id,
+      surveyData.mainTasks,
+      surveyData.department,
+      parseFloat(((
+        surveyData.aiCuriosity +
+        surveyData.aiResistance +
+        surveyData.aiBasicKnowledge +
+        surveyData.aiKnowledgePromptDesign +
+        surveyData.aiKnowledgeIntegration +
+        surveyData.aiKnowledgeRiskAssessment +
+        surveyData.aiKnowledgeUsageFrequency +
+        surveyData.aiPolicy +
+        surveyData.aiDataGovernance +
+        surveyData.aiCaution +
+        surveyData.aiSecurityPrivacy
+      ) / 11).toFixed(2))
+    );
+    
   } catch (error) {
     console.error("Error processing dashboard data:", error);
     throw new Error("Internal server error");
   }
 };
-
-
-
-

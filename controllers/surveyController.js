@@ -52,6 +52,7 @@ export const createNewSurvey = async (req, res) => {
     const newSurvey = new Survey({
       ...survey,
     });
+    
     await newSurvey.save();
     // Update the company with the new survey
     const company = await Company.findById(company_id);

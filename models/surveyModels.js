@@ -1,12 +1,22 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
-const taskDetailSchema = new Schema({
-  frequency: String,
-  structureLevel: String,
-  impact: String,
-  dataAvailability: String,
-}, { _id: false });
+
+const taskDetailSchema = new Schema(
+  {
+    frequency: String,
+    structureLevel: String,
+    impact: String,
+    dataAvailability: String,
+    kpiImpact: String,
+    severityImpact: String,
+    automationPriority: String,
+    timeSaved: String,
+    implementationComplexity: String,
+
+  },
+  { _id: false }
+);
 
 const surveySchema = new Schema({
   // Información de empresa (nuevo)
@@ -24,6 +34,7 @@ const surveySchema = new Schema({
     type: String,
     required: true,
   },
+
   email: {
     type: String,
     required: true,
@@ -31,6 +42,7 @@ const surveySchema = new Schema({
   department: String,
   role: String,
   experience: String,
+  totalExperience: String,
 
   // Inventario de tareas
   mainTasks: {
@@ -42,25 +54,91 @@ const surveySchema = new Schema({
     default: [],
   },
 
+  otherToolText: String,
+
   // Viabilidad de automatización para cada tarea
   taskDetails: {
     type: [taskDetailSchema],
     default: [
-      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
-      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
-      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
-      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" },
-      { frequency: "", structureLevel: "", impact: "", dataAvailability: "" }
+      {
+        frequency: "",
+        structureLevel: "",
+        impact: "",
+        dataAvailability: "",
+        kpiImpact: "",
+        severityImpact: "",
+        automationPriority: "",
+        timeSaved: "",
+        implementationComplexity: "",
+      },
+      {
+        frequency: "",
+        structureLevel: "",
+        impact: "",
+        dataAvailability: "",
+        kpiImpact: "",
+        severityImpact: "",
+        automationPriority: "",
+        timeSaved: "",
+        implementationComplexity: "",
+      },
+      {
+        frequency: "",
+        structureLevel: "",
+        impact: "",
+        dataAvailability: "",
+        kpiImpact: "",
+        severityImpact: "",
+        automationPriority: "",
+        timeSaved: "",
+        implementationComplexity: "",
+      },
+      {
+        frequency: "",
+        structureLevel: "",
+        impact: "",
+        dataAvailability: "",
+        kpiImpact: "",
+        severityImpact: "",
+        automationPriority: "",
+        timeSaved: "",
+        implementationComplexity: "",
+      },
+      {
+        frequency: "",
+        structureLevel: "",
+        impact: "",
+        dataAvailability: "",
+        kpiImpact: "",
+        severityImpact: "",
+        automationPriority: "",
+        timeSaved: "",
+        implementationComplexity: "",
+      },
     ],
   },
 
-  // Tareas actuales
-  dailyTasks: String,
-  timeConsumingTasks: String,
-  repetitiveTasks: String,
+  trainingTime: String,
+  trainingFormats: {
+    type: [String],
+    default: [],
+  },
 
-  // Conocimiento en IA
-  aiKnowledge: String,
+  aiCuriosity: Number,
+  aiResistance: Number,
+  aiBasicKnowledge: Number,
+  aiKnowledgePromptDesign: Number,
+  aiKnowledgeIntegration: Number,
+  aiKnowledgeRiskAssessment: Number,
+  aiKnowledgeUsageFrequency: Number,
+  aiPolicy: Number,
+  aiDataGovernance: Number,
+  aiCaution: Number,
+  aiSecurityPrivacy: Number,
+  AI_learning_motivation: Number,
+  AI_learning_motivation_other: String,
+  AI_learning_leader_support: Number,
+  
   toolsUsed: {
     type: [String],
     default: [],
@@ -89,18 +167,12 @@ const surveySchema = new Schema({
   automationBenefit: String,
   implementationComplexity: String,
 
-  // Roadmap de adopción
-  trainingTime: String,
-  trainingFormats: {
-    type: [String],
-    default: [],
-  },
-
   // Created at
   createdAt: {
     type: Date,
     default: Date.now,
   },
+
 });
 
 const Survey = mongoose.model("Survey", surveySchema);

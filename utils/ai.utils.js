@@ -141,6 +141,99 @@ export const getTaskType = async (taskDescription) => {
   }
 };
 
+
+
+
+export const classifyByCluster = async (tasks) => {
+  console.log("Classifying tasks into clusters:", tasks);
+
+  const prompt = `
+    Based on the following task descriptions, classify them into one of these predefined clusters:
+
+    Available Clusters:
+    1. Data Analysts (analistasDeDatosEInformacion):
+       - Tasks: Prepare, integrate, and analyze data; build dashboards; generate reports
+       - Depth: High data usage, requires interpreting and transforming information for decisions
+
+    2. Document Builders (constructoresDeDocumentosYContenido):
+       - Tasks: Write, compile, synthesize and present information in documents or presentations
+       - Depth: Intermediate data usage (consume but don't deeply transform data); focus on clarity and communication
+
+    3. Process Integrators (integradoresYOptimizadoresDeProcesos):
+       - Tasks: Operate or automate workflows, integrate information from different sources, reduce manual steps
+       - Depth: Intermediate/high operational data; focus on efficiency
+
+    4. Communicators (comunicadoresYDifusoresDeInformacion):
+       - Tasks: Create and send internal/external messages, social media, customer responses
+       - Depth: Low/intermediate data usage (more about message management than deep analysis)
+
+    5. Strategy Managers (gestoresDeEstrategiaYDecision):
+       - Tasks: Analyze results, prepare strategic proposals, combine data with business vision
+       - Depth: High level of data synthesis and context, build recommendations
+
+    Tasks description:
+    "${tasks.join(", ")}"
+
+    Carefully analyze the tasks and select the most appropriate cluster.
+  `;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.2,
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "classify_cluster",
+            description: "Classify the task into the most appropriate cluster",
+            parameters: {
+              type: "object",
+              properties: {
+                clusterType: {
+                  type: "string",
+                  description: "The type of cluster that best fits the task",
+                  enum: [
+                    "analistasDeDatosEInformacion",
+                    "constructoresDeDocumentosYContenido",
+                    "integradoresYOptimizadoresDeProcesos",
+                    "comunicadoresYDifusoresDeInformacion",
+                    "gestoresDeEstrategiaYDecision",
+                  ],
+                },
+              },
+              required: ["clusterType"],
+            },
+          },
+        },
+      ],
+      tool_choice: {
+        type: "function",
+        function: { name: "classify_cluster" },
+      },
+    });
+
+    if (!response.choices?.[0]?.message?.tool_calls?.[0]) {
+      throw new Error("No classification returned from API");
+    }
+
+    const toolCall = response.choices[0].message.tool_calls[0];
+    const args = JSON.parse(toolCall.function.arguments);
+    
+    console.log(`Classification result:`, {
+      cluster: args.clusterType,
+    });
+
+    return args.clusterType;    
+     
+  } catch (error) {
+    console.error("Error classifying task:", error);
+    throw new Error(`Failed to classify task: ${error.message}`);
+  }
+};
+
+
 export const genrateAIReport = async (data) => {
   console.log("Generating AI report");
   const prompt = `You are an AI analyst. Analyze the following company data and generate:
